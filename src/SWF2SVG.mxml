@@ -7,28 +7,33 @@
 		
 		private function onInvoke(e: InvokeEvent): void {
 			for each (var inName: String in e.arguments) {
-				var outName: String = inName.substr(0, inName.length - 3) + "svg";
-				trace("Generating " + e.currentDirectory.resolvePath(outName).nativePath);
-				
-				var bytes: ByteArray = new ByteArray();
-				
-				var swfFile: FileStream = new FileStream();
-				swfFile.open(e.currentDirectory.resolvePath(inName), FileMode.READ);
-				swfFile.readBytes(bytes);
-				swfFile.close();
-				
-				var swf: SWF = new SWF(bytes);
-				var svgExporter: SVGShapeExporter = new SVGShapeExporter(swf);
-				
-				for each (var tag: ITag in swf.tags)
-					if (tag is TagDefineShape)
-						TagDefineShape(tag).export(svgExporter);
-				
-				var svgFile: FileStream = new FileStream();
-				svgFile.open(e.currentDirectory.resolvePath(outName), FileMode.WRITE);
-				svgFile.writeUTFBytes(svgExporter.svg);
-				
-				svgFile.close();
+				try {
+					var outName: String = inName.substr(0, inName.length - 3) + "svg";
+					
+					trace("Generating " + e.currentDirectory.resolvePath(outName).nativePath);
+					
+					var bytes: ByteArray = new ByteArray();
+					
+					var swfFile: FileStream = new FileStream();
+					swfFile.open(e.currentDirectory.resolvePath(inName), FileMode.READ);
+					swfFile.readBytes(bytes);
+					swfFile.close();
+					
+					var swf: SWF = new SWF(bytes);
+					var svgExporter: SVGShapeExporter = new SVGShapeExporter(swf);
+					
+					for each (var tag: ITag in swf.tags)
+						if (tag is TagDefineShape)
+							TagDefineShape(tag).export(svgExporter);
+					
+					var svgFile: FileStream = new FileStream();
+					svgFile.open(e.currentDirectory.resolvePath(outName), FileMode.WRITE);
+					svgFile.writeUTFBytes(svgExporter.svg);
+					
+					svgFile.close();
+				} catch (e: Error) {
+					trace(inName + ": "+ e.toString());
+				}
 			}
 			
 			var exitingEvent:Event = new Event(Event.EXITING, false, true);
